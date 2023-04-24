@@ -1,0 +1,7 @@
+**/.DS_Store
+**/*.d
+**/*.a
+**/*.o
+bootable.iso
+sysroot/*
+

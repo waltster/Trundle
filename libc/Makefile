@@ -16,7 +16,7 @@ ARCH_DIR=arch/$(HOST_ARCH)
 C_FLAGS:=$(C_FLAGS) -ffreestanding -Wall -Wextra
 CPP_FLAGS:=$(CPP_FLAGS) -D__is_libc -Iinclude -I$(DEST_DIR)$(INCLUDE_DIR)
 LIBK_C_FLAGS:=$(C_FLAGS)
-LIBK_CPP_FLAGS:=$(CPP_FLAGS) -D__is_libk
+LIBK_CPP_FLAGS:=$(CPP_FLAGS) -D__is_libk -I$(DEST_DIR)$(INCLUDE_DIR)
 
 include $(ARCH_DIR)/make.config
 
@@ -40,14 +40,14 @@ HOSTED_OBJS=$(ARCH_HOSTED_OBJS)
 OBJS=$(FREE_OBJS) $(HOSTED_OBJS)
 LIBK_OBJS=$(FREE_OBJS:.o=.libk.o)
 
-BINARIES=libk.a
+BINARIES=libk.a libc.a
 
 .PHONY: all clean install install-headers install-libs
 .SUFFIXES: .o .libk.o .c .s
 
 all: $(BINARIES)
 
-lib.a: $(OBJS)
+libc.a: $(OBJS)
 	$(AR) rcs $@ $(OBJS)
 
 libk.a: $(LIBK_OBJS)

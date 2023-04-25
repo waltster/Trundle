@@ -4,7 +4,8 @@
 #include <sys/cdefs.h>
 
 #define EOF (-1)
-
+// TODO: Write to stderr
+#define kerror(msg) {printf("Kernel Error: %s\n", msg); }
 #ifdef __cplusplus
 extern "C" {
 #endif

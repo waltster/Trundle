@@ -19,7 +19,7 @@ static uint16_t* terminal_buffer;
 void terminal_initialize(void) {
 	terminal_row = 0;
 	terminal_column = 0;
-	terminal_color = vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
+	terminal_color = vga_entry_color(VGA_COLOR_WHITE, VGA_COLOR_BLACK);
 	terminal_buffer = VGA_MEMORY;
 	for (size_t y = 0; y < VGA_HEIGHT; y++) {
 		for (size_t x = 0; x < VGA_WIDTH; x++) {
@@ -61,10 +61,21 @@ void terminal_putchar(char c) {
 	int line;
 	unsigned char uc = c;
 
-    // TODO: Handle special characters
-    terminal_putentryat(uc, terminal_color, terminal_column, terminal_row);
+    if (c == 0x08 && terminal_column || c == '\b' && terminal_column) {
+        terminal_column--;
+    } else if (c == 0x09 || c == '\t') {
+        terminal_column = (terminal_column + 8) & ~(7);
+    } else if (c == '\r') {
+        terminal_column = 0;
+    } else if (c == '\n') {
+        terminal_column = 0;
+        terminal_row++;
+    } else if (c >= ' ') {
+        terminal_putentryat(uc, terminal_color, terminal_column++, terminal_row);
+    }
+
 	
-    if (++terminal_column == VGA_WIDTH) {
+    if (terminal_column >= VGA_WIDTH) {
 		terminal_column = 0;
 		if (++terminal_row == VGA_HEIGHT)
 		{

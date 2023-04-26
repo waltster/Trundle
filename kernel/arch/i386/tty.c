@@ -21,6 +21,7 @@ void terminal_initialize(void) {
 	terminal_column = 0;
 	terminal_color = vga_entry_color(VGA_COLOR_WHITE, VGA_COLOR_BLACK);
 	terminal_buffer = VGA_MEMORY;
+
 	for (size_t y = 0; y < VGA_HEIGHT; y++) {
 		for (size_t x = 0; x < VGA_WIDTH; x++) {
 			const size_t index = y * VGA_WIDTH + x;
@@ -49,19 +50,20 @@ void terminal_scroll(int line) {
 }
  
 void terminal_delete_last_line() {
-	int x, *ptr;
+	size_t x;
+    int *ptr;
  
 	for(x = 0; x < VGA_WIDTH * 2; x++) {
-		ptr = 0xB8000 + (VGA_WIDTH * 2) * (VGA_HEIGHT - 1) + x;
+		ptr = (int*) (0xB8000 + (VGA_WIDTH * 2) * (VGA_HEIGHT - 1) + x);
 		*ptr = 0;
 	}
 }
  
 void terminal_putchar(char c) {
-	int line;
+	size_t line;
 	unsigned char uc = c;
 
-    if (c == 0x08 && terminal_column || c == '\b' && terminal_column) {
+    if ((c == 0x08 && terminal_column) || (c == '\b' && terminal_column)) {
         terminal_column--;
     } else if (c == 0x09 || c == '\t') {
         terminal_column = (terminal_column + 8) & ~(7);
@@ -90,8 +92,9 @@ void terminal_putchar(char c) {
 }
  
 void terminal_write(const char* data, size_t size) {
-	for (size_t i = 0; i < size; i++)
+	for (size_t i = 0; i < size; i++) {
 		terminal_putchar(data[i]);
+    }
 }
  
 void terminal_writestring(const char* data) {

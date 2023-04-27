@@ -14,9 +14,9 @@ LIB_DIR?=$(EXEC_PREFIX)/lib
 ARCH_DIR=arch/$(HOST_ARCH)
 
 C_FLAGS:=$(C_FLAGS) -ffreestanding -Wall -Wextra
-CPP_FLAGS:=$(CPP_FLAGS) -D__is_libc -Iinclude -I$(DEST_DIR)$(INCLUDE_DIR)
+CPP_FLAGS:=$(CPP_FLAGS) -Iinclude -I$(DEST_DIR)$(INCLUDE_DIR)
 LIBK_C_FLAGS:=$(C_FLAGS)
-LIBK_CPP_FLAGS:=$(CPP_FLAGS) -D__is_libk -I$(DEST_DIR)$(INCLUDE_DIR)
+LIBK_CPP_FLAGS:=$(CPP_FLAGS) -I$(DEST_DIR)$(INCLUDE_DIR)
 
 include $(ARCH_DIR)/make.config
 
@@ -40,7 +40,7 @@ HOSTED_OBJS=$(ARCH_HOSTED_OBJS)
 OBJS=$(FREE_OBJS) $(HOSTED_OBJS)
 LIBK_OBJS=$(FREE_OBJS:.o=.libk.o)
 
-BINARIES=libk.a libc.a
+BINARIES=libk.a
 
 .PHONY: all clean install install-headers install-libs
 .SUFFIXES: .o .libk.o .c .s
@@ -54,16 +54,16 @@ libk.a: $(LIBK_OBJS)
 	$(AR) rcs $@ $(LIBK_OBJS)
 
 .c.o:
-	$(CC) -MD -c $< -o $@ -std=gnu11 $(C_FLAGS) $(CPP_FLAGS)
+	$(CC) -MD -c $< -o $@ -std=gnu11 -D__is_libc $(C_FLAGS) $(CPP_FLAGS)
 
 .S.o:
-	$(CC) -MD -c $< -o $@ $(C_FLAGS) $(CPP_FLAGS)
+	$(CC) -MD -c $< -o $@ $(C_FLAGS) -D__is_libc $(CPP_FLAGS)
 
 .c.libk.o:
-	$(CC) -MD -c $< -o $@ -std=gnu11 $(LIBK_C_FLAGS) $(LIBK_CPP_FLAGS)
+	$(CC) -MD -c $< -o $@ -std=gnu11 -D__is_libk $(LIBK_C_FLAGS) $(LIBK_CPP_FLAGS)
 
 .S.libk.o:
-	$(CC) -MD -c $< -o $@ $(LIBK_C_FLAGS) $(LIBK_CPP_FLAGS)
+	$(CC) -MD -c $< -o $@ -D__is_libk $(LIBK_C_FLAGS) $(LIBK_CPP_FLAGS)
 
 clean:
 	rm -f $(BINARIES) *.a

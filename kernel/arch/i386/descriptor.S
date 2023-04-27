@@ -32,12 +32,21 @@ isr_\num:
 .global isr_\num
 isr_\num:
     cli
-    push 0
+    push $0
     push $\num
     jmp isr_common_stub
 .endm
 
-.global isr_handler
+.macro irq_stub irq_num int_num
+.global irq_\irq_num
+irq_\irq_num:
+    cli
+    push $0
+    push $\int_num
+    jmp irq_common_stub
+.endm
+
+.global isr_common_stub
 .extern isr_handler
 isr_common_stub:
     pusha
@@ -60,6 +69,32 @@ isr_common_stub:
     mov %ax, %fs
     mov %ax, %gs
     
+    popa
+    add $8, %esp
+    sti
+    iret
+
+.global irq_common_stub
+irq_common_stub:
+    pusha
+    mov %ds, %ax
+    push %eax
+    
+    mov $0x10, %ax
+    mov %ax, %ds
+    mov %ax, %es
+    mov %ax, %fs
+    mov %ax, %gs
+    push %esp
+
+    call irq_handler
+
+    pop %ebx
+    pop %ebx
+    mov %bx, %ds
+    mov %bx, %es
+    mov %bx, %fs
+    mov %bx, %gs
     popa
     add $8, %esp
     sti
@@ -98,3 +133,21 @@ isr_stub_no_err 28  // Hypervisor injection exception
 isr_stub_err    29  // VMM Communications exception
 isr_stub_err    30  // Security exception
 isr_stub_no_err 31  // Reserved
+
+irq_stub 0 32
+irq_stub 1 33
+irq_stub 2 34
+irq_stub 3 35
+irq_stub 4 36
+irq_stub 5 37
+irq_stub 6 38
+irq_stub 7 39
+irq_stub 8 40
+irq_stub 9 41
+irq_stub 10 42
+irq_stub 11 43
+irq_stub 12 44
+irq_stub 13 45
+irq_stub 14 46
+irq_stub 15 47
+

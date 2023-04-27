@@ -2,10 +2,10 @@
 #define _STDIO_H 1
 
 #include <sys/cdefs.h>
+#include <stdint.h>
 
 #define EOF (-1)
-// TODO: Write to stderr
-#define kerror(msg) {printf("Kernel Error: %s\n", msg); }
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -13,6 +13,10 @@ extern "C" {
 int printf(const char* __restrict, ...);
 int putchar(int);
 int puts(const char *);
+
+#define kerror(msg) {printf("Kernel Error: %s\n", msg); }
+void outb(uint16_t port, uint8_t value);
+uint8_t inb(uint16_t port);
 
 #ifdef __cplusplus
 }

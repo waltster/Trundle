@@ -11,6 +11,8 @@ void timer_callback(registers_t* regs) {
     printf("Tick: %d\n", tick);
 }
 
+extern uint32_t placement_address;
+
 void kernel_main() {
     terminal_initialize();
     printf("Hello, world!\n");
@@ -20,14 +22,12 @@ void kernel_main() {
     printf("Initialized ISR\n");
     pmm_initialize();
     printf("Initialized PMM\n");
-
     asm volatile("sti");
 
-    uint32_t *ptr = (uint32_t*)0xFFF00000;
-    uint32_t fault = *ptr;
-
-    printf("Address: %d\n", fault);
-
+    char *test = (char*)kmalloc(10);
+   // memcpy(test, "Hello", strlen("Hello"));
+    
+    printf("0x%X: %s\n", test, test); 
     for(;;) {
         asm("hlt");
     }

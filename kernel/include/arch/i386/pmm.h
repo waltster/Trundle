@@ -30,4 +30,5 @@ typedef struct {
 } page_directory_t;
 
 void page_fault(registers_t *regs);
+void pmm_initialize();
 #endif

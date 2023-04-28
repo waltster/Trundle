@@ -132,7 +132,7 @@ void page_fault(registers_t *regs) {
     int id = regs->error_number & 0b10000;
 
     printf("Page fault!\n");
-    if (present) printf("\tNot present\n");
+    if (present) printf("\tPresent\n");
     if (rw) printf("\tRead-only\n");
     if (user) printf("\tUser mode\n");
     if (reserved) printf("\tReserved\n");
@@ -163,7 +163,6 @@ void pmm_initialize() {
 
     for (uint32_t i = HEAP_START; i < HEAP_START + HEAP_INITIAL_SIZE; 
             i += 0x1000) {
-        printf("Mapping address 0x%X\n", i);
         pmm_allocate_frame(pmm_get_page(i, 1, pmm_kernel_directory), 0, 0);
     }
 

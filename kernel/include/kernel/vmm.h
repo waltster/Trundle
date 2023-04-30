@@ -9,16 +9,15 @@
 #define HEAP_INITIAL_SIZE  0x100000
 
 typedef struct {
-    uint32_t magic;
-    uint8_t allocated;
-    uint32_t size;
-} heap_header_t;
+    uint32_t heap_size;
+    uint32_t heap_start;
+} heap_t;
 
 typedef struct {
-    uint32_t beginning;
+    uint32_t magic;
     uint32_t size;
-    heap_header_t *first;
-} heap_t;
+    uint32_t allocated;
+} heap_header_t;
 
 void heap_create(uint32_t beginning, uint32_t size);
 uint32_t kmalloc(size_t size);

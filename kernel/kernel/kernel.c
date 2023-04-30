@@ -4,6 +4,7 @@
 #include <kernel/vmm.h>
 #include <arch/i386/descriptor_tables.h>
 #include <arch/i386/pmm.h>
+#include <string.h>
 
 volatile uint32_t tick = 0;
 void timer_callback(registers_t* regs) {
@@ -14,6 +15,8 @@ void timer_callback(registers_t* regs) {
 extern uint32_t placement_address;
 
 void kernel_main() {
+    char *my_string = "My string!";
+    char *my_string_2 = "123456789";
     terminal_initialize();
     printf("Hello, world!\n");
     gdt_initialize();
@@ -24,10 +27,6 @@ void kernel_main() {
     printf("Initialized PMM\n");
     asm volatile("sti");
 
-    char *test = (char*)kmalloc(10);
-   // memcpy(test, "Hello", strlen("Hello"));
-    
-    printf("0x%X: %s\n", test, test); 
     for(;;) {
         asm("hlt");
     }

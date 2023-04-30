@@ -1,12 +1,10 @@
 #include <string.h>
 
 void *memcpy(void* restrict dst, const void* restrict src, size_t size) {
-    unsigned char *dst_c = (unsigned char*)dst;
-    const unsigned char *src_c = (const unsigned char*)src;
+    const unsigned char *src_ptr = (const unsigned char*)src;
+    unsigned char *dst_ptr = (unsigned char*)dst;
 
-    for (size_t i = 0; i < size; i++) {
-        dst_c[i] = src_c[i];
+    for(; size != 0; size--) {
+        *dst_ptr++ = *src_ptr++;
     }
-
-    return dst;
 }

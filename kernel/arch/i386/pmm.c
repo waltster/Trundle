@@ -156,20 +156,23 @@ void pmm_initialize() {
     memset(pmm_kernel_directory, 0, sizeof(page_directory_t));
     current_directory = pmm_kernel_directory;
 
+    for (uint32_t i = HEAP_START; i < HEAP_START + HEAP_INITIAL_SIZE;
+            i += 0x1000) {
+        pmm_get_page(i, 1, pmm_kernel_directory);
+    }
+
     // Identity map the kernel
-    for (uint32_t i = 0; i < placement_address; i += 0x1000) {
+    for (uint32_t i = 0; i < placement_address + 0x1000; i += 0x1000) {
         pmm_allocate_frame(pmm_get_page(i, 1, pmm_kernel_directory), 0, 0);
     }
 
     for (uint32_t i = HEAP_START; i < HEAP_START + HEAP_INITIAL_SIZE; 
             i += 0x1000) {
-        printf("Mapping address 0x%X\n", i);
         pmm_allocate_frame(pmm_get_page(i, 1, pmm_kernel_directory), 0, 0);
     }
-
-    heap_initialize(HEAP_START, HEAP_INITIAL_SIZE);
 
     register_interrupt_handler(14, page_fault);
     pmm_switch_page_directory(pmm_kernel_directory);
 
+    heap_initialize(HEAP_START, HEAP_INITIAL_SIZE);
 }

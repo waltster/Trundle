@@ -1,10 +1,10 @@
 #include <string.h>
 
 void *memset(void *ptr, int value, size_t size) {
-    unsigned char *buffer = (unsigned char*)ptr;
+    unsigned char *tmp = (unsigned char*)ptr;
 
-    for (size_t i = 0; i < size; i++) {
-        buffer[i] = (unsigned char) value;
+    for(; size != 0; size--) {
+        *tmp++ = value;
     }
 
     return ptr;

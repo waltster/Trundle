@@ -15,8 +15,6 @@ void timer_callback(registers_t* regs) {
 extern uint32_t placement_address;
 
 void kernel_main() {
-    char *my_string = "My string!";
-    char *my_string_2 = "123456789";
     terminal_initialize();
     printf("Hello, world!\n");
     gdt_initialize();

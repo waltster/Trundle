@@ -8,6 +8,8 @@
 #define PMM_TABLES_PER_DIRECTORY 1024
 #define INDEX_FROM_BIT(b) (b / (8*4))
 #define OFFSET_FROM_BIT(b) (b % (8*4))
+#define PAGE_SIZE 4096
+#define OUT_OF_MEMORY ((uint32_t)-1)
 
 typedef struct {
     uint32_t present: 1;

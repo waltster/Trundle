@@ -5,6 +5,7 @@
 #include <stdint.h>
 
 #define EOF (-1)
+#define NULL ((void*)0)
 
 #ifdef __cplusplus
 extern "C" {

@@ -4,4 +4,5 @@
 **/*.o
 bootable.iso
 sysroot/*
-
+**/*.swp
+**/.swp

@@ -42,7 +42,7 @@ export_libc_build () {
 }
 
 emulate_qemu () {
-    qemu-system-i386 -cdrom bootable.iso 
+    qemu-system-i386 -cdrom bootable.iso -d int -no-shutdown -no-reboot
 }
 
 emulate_bochs () {

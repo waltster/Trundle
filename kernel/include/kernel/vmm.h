@@ -19,7 +19,7 @@ typedef struct {
     uint32_t allocated;
 } heap_header_t;
 
-void heap_create(uint32_t beginning, uint32_t size);
+void heap_initialize(uint32_t beginning, uint32_t size);
 uint32_t kmalloc(size_t size);
 uint32_t kmalloc_aligned(size_t size, bool align);
 uint32_t kmalloc_physical_aligned(size_t size, bool align, uint32_t *physical);

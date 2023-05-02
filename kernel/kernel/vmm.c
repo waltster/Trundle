@@ -60,9 +60,9 @@ static void mem_insert_tag(int index, mem_tag_t *tag) {
 
     // If the free pages at that index is not null, then go ahead and insert the
     // tag before the existing one.
-    if (mem_free_pages[real_index] != (0)) {
+    if (mem_free_pages[real_index] != NULL) {
         mem_free_pages[real_index]->prev = tag;
-        tag->next = (struct mem_tag*)mem_free_pages[real_index];
+        tag->next = (mem_tag_t*)mem_free_pages[real_index];
     }
 
     mem_free_pages[real_index] = tag;
@@ -167,7 +167,7 @@ static mem_tag_t* mem_create_tag(size_t size) {
     mem_tag_t *tag = (mem_tag_t*)pmm_allocate_and_map_for_heap(pages);
     printf("Page at: 0x%X\n", tag);
 
-    if (tag == NULL) return NULL;
+    if (tag == OUT_OF_MEMORY) return NULL;
 
     tag->magic = MEM_MAGIC;
     tag->size = size;

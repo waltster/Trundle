@@ -29,6 +29,9 @@ void kernel_main() {
     memcpy(test, "Hello\0", 6);
     printf("0x%X: %s\n", test, test);
 
+    char *test2 = kmalloc(6);
+    memset(test2, "Hi   \0", 6);
+    printf("Test 2: 0x%X: %s\n", test2, test2);
     for(;;) {
         asm("hlt");
     }

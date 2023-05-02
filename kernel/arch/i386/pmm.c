@@ -173,6 +173,8 @@ uint32_t pmm_allocate_pages(int pages) {
 }
 
 uint32_t pmm_allocate_and_map_for_heap(size_t pages) {
+    printf("Call to %s\n", __FUNCTION__);
+
     uint32_t physicals = pmm_allocate_pages(pages);
 
     if (physicals == OUT_OF_MEMORY) {
@@ -186,9 +188,10 @@ uint32_t pmm_allocate_and_map_for_heap(size_t pages) {
     }
 
     for (uint32_t i = heap_location, j = 0; i < new_heap_end; i += PAGE_SIZE, j += PAGE_SIZE) {
-        printf("Mapping page at 0x%X to 0x%X\n", physicals + j, i);
         pmm_map_page(pmm_kernel_directory, i, physicals + j, true, false);
     }
+
+    heap_location = new_heap_end;
 
     return new_heap_end - (pages * PAGE_SIZE);
 }

@@ -25,6 +25,10 @@ void kernel_main() {
     printf("Initialized PMM\n");
     asm volatile("sti");
 
+    char *test = kmalloc(6);
+    memcpy(test, "Hello\0", 6);
+    printf("0x%X: %s\n", test, test);
+
     for(;;) {
         asm("hlt");
     }

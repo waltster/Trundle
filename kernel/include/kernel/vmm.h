@@ -4,24 +4,31 @@
 #include <stddef.h>
 #include <stdbool.h>
 
-#define HEAP_HEADER_MAGIC 0xFEEFD00B
+#define MEM_MAGIC 0xFEEFD00B
 #define HEAP_START         0xC0000000
 #define HEAP_INITIAL_SIZE  0x100000
+#define MEM_MIN_EXPONENT 8
+#define MEM_MAX_EXPONENT 32
+#define MEM_MAX_COMPLETE 5
 
-typedef struct {
-    uint32_t heap_size;
-    uint32_t heap_start;
-} heap_t;
-
-typedef struct {
+typedef struct mem_tag {
     uint32_t magic;
     uint32_t size;
-    uint32_t allocated;
-} heap_header_t;
+    uint32_t real_size;
+    int index;
+    struct mem_tag *split_left;
+    struct mem_tag *split_right;
+    struct mem_tag *next;
+    struct mem_tag *prev;
+} mem_tag_t;
 
-void heap_initialize(uint32_t beginning, uint32_t size);
-uint32_t kmalloc(size_t size);
-uint32_t kmalloc_aligned(size_t size, bool align);
-uint32_t kmalloc_physical_aligned(size_t size, bool align, uint32_t *physical);
+void *kmalloc(size_t size);
+void *krealloc(void *, size_t);
+void *kcalloc(size_t, size_t);
+void kfree(void *);
+
+uint32_t _kmalloc(size_t size);
+uint32_t _kmalloc_aligned(size_t size, bool align);
+uint32_t _kmalloc_physical_aligned(size_t size, bool align, uint32_t *physical);
 
 #endif

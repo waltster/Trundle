@@ -33,4 +33,6 @@ typedef struct {
 
 void page_fault(registers_t *regs);
 void pmm_initialize();
+page_t *pmm_get_page(page_directory_t *dir, uint32_t virtual_address, 
+        bool create);
 #endif

@@ -10,6 +10,8 @@
 page_directory_t *pmm_kernel_directory = 0;
 page_directory_t *current_directory = 0;
 extern uint32_t placement_address;
+extern uint32_t heap_location;
+
 uint32_t *bit_frames;
 uint32_t frame_count;
 
@@ -170,6 +172,49 @@ uint32_t pmm_allocate_pages(int pages) {
     return OUT_OF_MEMORY;
 }
 
+uint32_t pmm_allocate_and_map_for_heap(size_t pages) {
+    uint32_t physicals = pmm_allocate_pages(pages);
+
+    if (physicals == OUT_OF_MEMORY) {
+        return OUT_OF_MEMORY;
+    }
+
+    uint32_t new_heap_end = (uint32_t)(heap_location + (pages * PAGE_SIZE));
+
+    if (new_heap_end > HEAP_START + HEAP_INITIAL_SIZE) {
+       panic("Cannot allocate more than the initial size for the heap");
+    }
+
+    for (uint32_t i = heap_location, j = 0; i < new_heap_end; i += PAGE_SIZE, j += PAGE_SIZE) {
+        printf("Mapping page at 0x%X to 0x%X\n", physicals + j, i);
+        pmm_map_page(pmm_kernel_directory, i, physicals + j, true, false);
+    }
+
+    return new_heap_end - (pages * PAGE_SIZE);
+}
+
+void pmm_free_page(uint32_t virtual_address) {
+    pmm_unmap_page(pmm_kernel_directory, virtual_address);
+}
+
+void pmm_free_pages(uint32_t virtual_address, size_t pages) {
+    for (int i = virtual_address; i < (virtual_address + (pages * PAGE_SIZE));
+            i++) {
+        pmm_free_page(i);
+    }
+}
+
+void pmm_unmap_page(page_directory_t *dir, uint32_t virtual_address) {
+    page_t *page = pmm_get_page(dir, virtual_address, false);
+
+    if (!page) return;
+
+    pmm_clear_frame(page->address);
+    *((uint32_t*)page) = 0;
+
+    asm volatile("invlpg (%0)" :: "a" (virtual_address));
+}
+
 page_t *pmm_get_page(page_directory_t *dir, uint32_t virtual_address, 
         bool create) {
     virtual_address /= PAGE_SIZE;
@@ -181,7 +226,7 @@ page_t *pmm_get_page(page_directory_t *dir, uint32_t virtual_address,
     } else if (create) {
         uint32_t tmp;
 
-        dir->tables[table_index] = (page_table_t*)kmalloc_physical_aligned(
+        dir->tables[table_index] = (page_table_t*)_kmalloc_physical_aligned(
                 sizeof(page_table_t), true, &tmp);
         memset(dir->tables[table_index], 0, PAGE_SIZE);
 
@@ -221,20 +266,21 @@ void pmm_initialize() {
     uint32_t mem_end_page = 0x1000000;
     frame_count = mem_end_page / PAGE_SIZE;
 
-    bit_frames = (uint32_t*)kmalloc(INDEX_FROM_BIT(frame_count));
-    pmm_kernel_directory = (page_directory_t*)kmalloc_aligned(
+    bit_frames = (uint32_t*)_kmalloc(INDEX_FROM_BIT(frame_count));
+    pmm_kernel_directory = (page_directory_t*)_kmalloc_aligned(
            sizeof(page_directory_t), true);
     current_directory = pmm_kernel_directory;
 
     memset(bit_frames, 0, INDEX_FROM_BIT(frame_count));
     memset(pmm_kernel_directory, 0, sizeof(page_directory_t)); 
 
-
+    /*printf ("Getting heap\n");
     for (uint32_t i = HEAP_START; i < HEAP_START + HEAP_INITIAL_SIZE;
             i += PAGE_SIZE) {
         pmm_get_page(pmm_kernel_directory, i, true);
-    }
+    }*/
 
+    printf("Identity mapping kernel\n");
     for (uint32_t i = 0; i < placement_address + PAGE_SIZE; i += PAGE_SIZE) {
         uint32_t phys = pmm_allocate_pages(1);
         uint32_t virt = i;
@@ -243,6 +289,7 @@ void pmm_initialize() {
     }
 
     // Identity map the heap
+    printf("Identity mapping the heap\n");
     for (uint32_t i = HEAP_START; i < HEAP_START + HEAP_INITIAL_SIZE;
             i += PAGE_SIZE) {
         uint32_t phys = pmm_allocate_pages(1);
@@ -253,5 +300,4 @@ void pmm_initialize() {
 
     register_interrupt_handler(14, page_fault);
     pmm_switch_page_directory(pmm_kernel_directory);
-    heap_initialize(HEAP_START, HEAP_INITIAL_SIZE);
 }

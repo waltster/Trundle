@@ -15,7 +15,8 @@ int printf(const char* __restrict, ...);
 int putchar(int);
 int puts(const char *);
 
-#define kerror(msg) {printf("Kernel Error: %s\n", msg); }
+#define kerror(msg) {printf("Kernel Error: %s (%s:%d)\n", msg, \
+        __FILE__, __LINE__); }
 #define panic(msg) { kerror(msg); abort(); }
 
 void outb(uint16_t port, uint8_t value);

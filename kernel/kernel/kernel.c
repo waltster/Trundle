@@ -30,8 +30,15 @@ void kernel_main() {
     printf("0x%X: %s\n", test, test);
 
     char *test2 = kmalloc(6);
-    memset(test2, "Hi   \0", 6);
+    memcpy(test2, "Hi   \0", 6);
     printf("Test 2: 0x%X: %s\n", test2, test2);
+
+    kfree(test2);
+    char *test3 = kmalloc(6);
+    memcpy(test3, "Hi   \0", 6);
+    printf("Test 3: 0x%X: %s\n", test3, test3);
+
+
     for(;;) {
         asm("hlt");
     }

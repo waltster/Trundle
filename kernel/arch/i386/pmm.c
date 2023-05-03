@@ -187,7 +187,8 @@ uint32_t pmm_allocate_and_map_for_heap(size_t pages) {
        panic("Cannot allocate more than the initial size for the heap");
     }
 
-    for (uint32_t i = heap_location, j = 0; i < new_heap_end; i += PAGE_SIZE, j += PAGE_SIZE) {
+    for (uint32_t i = heap_location, j = 0; i < new_heap_end; i += PAGE_SIZE, 
+            j += PAGE_SIZE) {
         pmm_map_page(pmm_kernel_directory, i, physicals + j, true, false);
     }
 

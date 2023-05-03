@@ -22,7 +22,7 @@ CPP_FLAGS:=$(CPP_FLAGS) $(KERNEL_ARCH_CPP_FLAGS)
 LD_FLAGS:=$(LD_FLAGS) $(KERNEL_ARCH_LD_FLAGS)
 LIBS:=$(LIBS) $(KERNEL_ARCH_LIBS)
 
-KERNEL_OBJS=$(KERNEL_ARCH_OBJS) kernel/kernel.o kernel/vmm.o
+KERNEL_OBJS=$(KERNEL_ARCH_OBJS) kernel/kernel.o kernel/vmm.o kernel/liballoc.o
 OBJS=$(ARCH_DIR)/crti.o $(ARCH_DIR)/crtbegin.o $(KERNEL_OBJS) $(ARCH_DIR)/crtend.o $(ARCH_DIR)/crtend.o $(ARCH_DIR)/crtn.o
 LINK_LIST=$(LD_FLAGS) $(ARCH_DIR)/crti.o $(ARCH_DIR)/crtbegin.o $(KERNEL_OBJS) $(LIBS) $(ARCH_DIR)/crtend.o $(ARCH_DIR)/crtn.o
 

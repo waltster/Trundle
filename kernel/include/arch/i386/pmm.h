@@ -2,6 +2,7 @@
 #define _PMM_H 1
 
 #include <stdint.h>
+#include <stdbool.h>
 #include <arch/i386/descriptor_tables.h>
 
 #define PMM_ENTRIES_PER_TABLE 1024
@@ -33,6 +34,21 @@ typedef struct {
 
 void page_fault(registers_t *regs);
 void pmm_initialize();
+
+/*
+ * Allocate a given number of virtually contiguous pages
+ *
+ * @param pages the number of pages to allocate
+ * @return the address of the first page, or OUT_OF_MEMORY if it is impossible.
+ */
+uint32_t pmm_allocate_pages(int pages);
+uint32_t pmm_allocate_and_map_for_heap(size_t pages);
+void pmm_free_page(uint32_t virtual_address);
+void pmm_free_pages(uint32_t virtual_address, size_t pages);
+void pmm_unmap_page(page_directory_t *dir, uint32_t virtual_address);
 page_t *pmm_get_page(page_directory_t *dir, uint32_t virtual_address, 
         bool create);
+void pmm_map_page(page_directory_t *dir, uint32_t virtual, uint32_t physical, 
+        bool writeable, bool user_mode);
+
 #endif

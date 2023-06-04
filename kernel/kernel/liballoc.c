@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include <stddef.h>
+#include <arch/i386/pmm.h>
 #include <liballoc.h>
 
 /**  Durand's Amazing Super Duper Memory functions.  */
@@ -9,7 +10,6 @@
 
 #define ALIGN_TYPE		char ///unsigned char[16] /// unsigned short
 #define ALIGN_INFO		sizeof(ALIGN_TYPE)*16	///< Alignment information is stored right before the pointer. This is the number of bytes of information stored there.
-
 
 #define USE_CASE1
 #define USE_CASE2
@@ -49,14 +49,6 @@
 
 #define LIBALLOC_MAGIC	0xc001c0de
 #define LIBALLOC_DEAD	0xdeaddead
-
-#if defined DEBUG || defined INFO
-#include <stdio.h>
-#include <stdlib.h>
-
-#define FLUSH()		fflush( stdout )
-
-#endif
 
 /** A structure found at the top of all system allocated 
  * memory blocks. It details the usage of the memory block.

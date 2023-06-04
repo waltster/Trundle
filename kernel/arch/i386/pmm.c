@@ -44,7 +44,7 @@ static bool pmm_test_frame(uint32_t frame_address) {
  *
  * @param virtual_address the virtual address of the page to invalidate
  */
-void pmm_flush(uint32_t virtual_address) {
+static void pmm_flush(uint32_t virtual_address) {
     asm volatile("invlpg (%0)" :: "a" (virtual_address));
 }
 
@@ -56,7 +56,7 @@ void pmm_flush(uint32_t virtual_address) {
  *
  * @return the first free frame or OUT_OF_MEMORY
  */
-uint32_t pmm_first_free_frame() {
+static uint32_t pmm_first_free_frame() {
     for (uint32_t i = 0; i < INDEX_FROM_BIT(frame_count); i++) {
         if (bit_frames[i] != 0xFFFFFFFF) {
             for (uint32_t j = 0; j < 32; j++) {
@@ -92,7 +92,7 @@ void page_fault(registers_t *regs) {
     abort();
 }
 
-void pmm_switch_page_directory(page_directory_t *directory) {
+static void pmm_switch_page_directory(page_directory_t *directory) {
     current_directory = directory;
     uint32_t cr0;
 

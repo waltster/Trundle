@@ -2,7 +2,6 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
- 
 #include <kernel/tty.h>
  
 #include "vga.h"
@@ -39,7 +38,7 @@ void terminal_putentryat(unsigned char c, uint8_t color, size_t x, size_t y) {
 	terminal_buffer[index] = vga_entry(c, color);
 }
  
-void terminal_scroll(int line) {
+void terminal_scroll() {
     memmove(&terminal_buffer[0], &terminal_buffer[VGA_WIDTH], 
             sizeof(uint16_t) * VGA_WIDTH * (VGA_HEIGHT - 1));
     memset(&terminal_buffer[VGA_WIDTH * (VGA_HEIGHT - 1)], 0, 
@@ -57,7 +56,6 @@ void terminal_delete_last_line() {
 }
  
 void terminal_putchar(char c) {
-	size_t line;
 	unsigned char uc = c;
 
     if ((c == 0x08 && terminal_column) || (c == '\b' && terminal_column)) {

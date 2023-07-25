@@ -80,7 +80,6 @@ void page_fault(registers_t *regs) {
     int rw = regs->error_number & 0b10;
     int user = regs->error_number & 0b100;
     int reserved = regs->error_number & 0b1000;
-    int id = regs->error_number & 0b10000;
 
     printf("Page fault!\n");
     if (present) printf("\tNot present\n");
@@ -110,6 +109,8 @@ static void pmm_switch_page_directory(page_directory_t *directory) {
  * @return the address of the first page, or OUT_OF_MEMORY if it is impossible.
  */
 uint32_t pmm_allocate_pages(int pages) {
+    if (pages <= 0) return OUT_OF_MEMORY;
+
     uint32_t index = 0;
     uint32_t free_frames = 0;
 
@@ -131,7 +132,7 @@ uint32_t pmm_allocate_pages(int pages) {
                         uint32_t first_addr = first_free_frame * PAGE_SIZE;
 
                         index = 0;
-                        while (index < pages) {
+                        while (index < (uint32_t)pages) {
                             uint32_t current_frame_index = (first_free_frame + index);
                             uint32_t current_addr = current_frame_index * PAGE_SIZE;
 
@@ -202,7 +203,7 @@ void pmm_free_page(uint32_t virtual_address) {
 }
 
 void pmm_free_pages(uint32_t virtual_address, size_t pages) {
-    for (int i = virtual_address; i < (virtual_address + (pages * PAGE_SIZE));
+    for (int i = virtual_address; i < (int)(virtual_address + (pages * PAGE_SIZE));
             i++) {
         pmm_free_page(i);
     }
@@ -299,9 +300,11 @@ void pmm_initialize() {
         uint32_t phys = pmm_allocate_pages(1);
         uint32_t virt = i;
 
+        if (phys == OUT_OF_MEMORY) panic("Out of memory!");
+
         pmm_map_page(pmm_kernel_directory, virt, phys, true, false);
     }
 
-    register_interrupt_handler(14, page_fault);
+    register_interrupt_handler(14, &page_fault);
     pmm_switch_page_directory(pmm_kernel_directory);
 }

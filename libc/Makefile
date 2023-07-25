@@ -34,7 +34,8 @@ string/memcmp.o \
 string/memcpy.o \
 string/memmove.o \
 string/memset.o \
-string/strlen.o 
+string/strlen.o \
+string/strcmp.o
 
 HOSTED_OBJS=$(ARCH_HOSTED_OBJS)
 OBJS=$(FREE_OBJS) $(HOSTED_OBJS)

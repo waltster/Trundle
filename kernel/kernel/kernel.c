@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <kernel/tty.h>
 #include <kernel/vmm.h>
+#include <kernel/multiboot.h>
+#include <kernel/vfs.h>
 #include <arch/i386/descriptor_tables.h>
 #include <arch/i386/pmm.h>
 #include <string.h>
@@ -14,30 +16,35 @@ void timer_callback(registers_t* regs) {
 
 extern uint32_t placement_address;
 
-void kernel_main() {
+void kernel_main(multiboot_header_t *mboot_ptr) {
     terminal_initialize();
     printf("Hello, world!\n");
     gdt_initialize();
     printf("Initialized GDT\n");
     idt_initialize();
     printf("Initialized ISR\n");
+
+    // At least m1.mod needs to load, this is the initial ramdisk.
+    if (mboot_ptr->mods_count <= 0) {
+        panic("Aborting due to module #1 failing to load\n");
+    }
+
+    // Free memory begins after `mboot_ptr->mods_count` pointers.
+    placement_address = (
+        *((uint32_t*)mboot_ptr->mods_addr) +
+        (sizeof(uint32_t) * mboot_ptr->mods_count)
+    );
+
     pmm_initialize();
-    printf("Initialized PMM\n");
+   
+    printf("Initializing devices...\n");
+    device_init();
+    void *initrd_address = (void*)(((uint32_t*)mboot_ptr->mods_addr));
+    initrd_init(initrd_address);
+    printf("\tRAMDisk initialized\n");
+    device_printall();
+
     asm volatile("sti");
-
-    char *test = kmalloc(6);
-    memcpy(test, "Hello\0", 6);
-    printf("0x%X: %s\n", test, test);
-
-    char *test2 = kmalloc(6);
-    memcpy(test2, "Hi   \0", 6);
-    printf("Test 2: 0x%X: %s\n", test2, test2);
-
-    kfree(test2);
-    char *test3 = kmalloc(6);
-    memcpy(test3, "Hi   \0", 6);
-    printf("Test 3: 0x%X: %s\n", test3, test3);
-
 
     for(;;) {
         asm("hlt");

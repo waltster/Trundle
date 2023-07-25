@@ -98,11 +98,11 @@ int liballoc_lock() { return 1; }
 int liballoc_unlock() { return 1; }
 
 void *liballoc_alloc(size_t size) {
-    return pmm_allocate_and_map_for_heap(size);
+    return (void*)pmm_allocate_and_map_for_heap(size);
 }
 
 int liballoc_free(void *ptr, size_t pages) {
-    pmm_free_pages(ptr, pages);
+    pmm_free_pages((uint32_t)ptr, pages);
 
     return 0;
 }

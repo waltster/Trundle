@@ -54,10 +54,12 @@ make_image () {
     export_kernel_build
     mkdir -p ./sysroot/boot/grub
     cp ./img/stage2_eltorito ./sysroot/boot/grub/stage2_eltorito
+    cp ./img/m1.mod ./sysroot/usr/local/boot/m1.mod
     cat << EOF > ./sysroot/boot/grub/menu.lst
 default 0
 title myos
 kernel /usr/local/boot/myos.kernel
+module /usr/local/boot/m1.mod
 EOF
     sudo mkisofs -R -b boot/grub/stage2_eltorito -no-emul-boot -boot-load-size 4 -boot-info-table -o ./bootable.iso ./sysroot
 }

@@ -20,11 +20,11 @@ void _kfree(void *ptr) {}
 
 // Increment the current allocation by size and return
 uint32_t _kmalloc(size_t size) {
-    return (void*)_kmalloc_physical_aligned(size, false, 0);
+    return _kmalloc_physical_aligned(size, false, 0);
 }
 
 uint32_t _kmalloc_aligned(size_t size, bool align) {
-    return (void*)_kmalloc_physical_aligned(size, align, 0);
+    return _kmalloc_physical_aligned(size, align, 0);
 }
 
 uint32_t _kmalloc_physical_aligned(size_t size, bool align, uint32_t *physical) {
@@ -37,9 +37,8 @@ uint32_t _kmalloc_physical_aligned(size_t size, bool align, uint32_t *physical) 
         *physical = placement_address;
     }
 
-    // TODO: Replace this with a virtual allocation
     uint32_t tmp = placement_address;
     placement_address += size;
     
-    return (void*)tmp;
+    return tmp;
 }

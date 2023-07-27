@@ -6,6 +6,22 @@
 static mount_point_t **mount_points;
 static int num_mount_points = 0;
 
+inline bool remove_until(char *str, char c) {
+    int i = strlen(str);
+
+    while (i) {
+        i--;
+
+        if (str[i] == c) {
+            str[i + 1] = '\0';
+            return true;
+        }
+
+    }
+
+    return false;
+}
+
 bool vfs_is_mounted(char *mount) {
     for (int i = 0; i < num_mount_points; i++) {
         if (strcmp(mount_points[i]->location, mount) == 0) return true;
@@ -24,6 +40,52 @@ device_t *vfs_get_mount(char *location) {
     return NULL;
 }
 
+file_t *vfs_open(char *location) {
+    if (location == NULL) return NULL; 
+    
+    int beginning_of_file = 0;
+    int mt_index = vfs_get_mount_point_index(location, &beginning_of_file);
+
+    if (mt_index < 0) return NULL;
+
+    mount_point_t *mountpoint = mount_points[mt_index];
+   
+    return ((fs_t*)mountpoint->device->filesystem)->open(location, 
+            mountpoint->device);
+}
+
+/*
+ * Find what part of a given path is the mount point and what index of the
+ * string is that mountpoint found at.
+ *
+ * @return the index in mountpoints
+ */
+inline int vfs_get_mount_point_index(char *location, int *str_index) {
+    char *filename = (char*)kmalloc(strlen(location) + 1);
+    memset(filename, 0, strlen(location) + 1);
+    memcpy(filename, location, strlen(location) + 1);
+    
+    if (filename[strlen(filename)] == '/') remove_until(filename, '/');
+
+    while (true) {
+        for (int i = 0; i < num_mount_points; i++) {
+            if (strcmp(mount_points[i]->location, filename) == 0) {
+               *str_index = strlen(filename) - 1;
+               printf("%d\n", *str_index);
+               kfree(filename);
+               return i; 
+            }
+        } 
+
+        if (strcmp(filename, "/") == 0) break;
+
+        remove_until(filename, '/');
+    }
+
+    kfree(filename);
+    return -1;
+}
+
 bool vfs_mount(char *mount, device_t *dev) {
     if (!dev || !(dev->uid)) return false;
     if (vfs_is_mounted(mount)) return false;
@@ -37,7 +99,6 @@ bool vfs_mount(char *mount, device_t *dev) {
             new_point->location = mount;
             new_point->device = dev;
             mount_points[num_mount_points++] = new_point;
-
             return true;
         }
 

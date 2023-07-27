@@ -61,16 +61,28 @@ uint32_t initrd_write(uint8_t *buffer, uint32_t offset, uint32_t length,
     return -1;
 }
 
-uint32_t initrd_read_file(char *name, char *buffer, uint32_t len, 
+uint32_t initrd_read_file(file_t *file, char *buffer, uint32_t len, 
         device_t *dev) {
     return -1;
 }
 
-uint32_t initrd_read_dir(char *name, char *buffer, device_t *dev) {
-    return -1;
+uint32_t initrd_read_dir(file_t *dir, device_t *dev) {
+
 }
 
-uint32_t initrd_write_file(char *name, char *buffer, uint32_t len,
+file_t *initrd_open_dir(char *name) {
+    file_t *dir = (file_t*)kmalloc(sizeof(file_t));
+    memset(dir, 0, sizeof(file_t));
+
+    dir->is_dir = 1;
+}
+
+file_t *initrd_open(char *name) {
+    printf("Request to open %s\n", name);
+    return NULL;
+}
+
+uint32_t initrd_write_file(file_t *file, char *buffer, uint32_t len,
         device_t *dev) {
     return -1;
 }
@@ -108,14 +120,18 @@ void initrd_init(void *mem_loc) {
     fs_initrd->probe = &initrd_probe;
     fs_initrd->read = &initrd_read_file;
     fs_initrd->read_dir = &initrd_read_dir;
+    fs_initrd->open = &initrd_open;
+    fs_initrd->open_dir = &initrd_open_dir;
     fs_initrd->write = &initrd_write_file;
     fs_initrd->exists = &initrd_exists;
     fs_initrd->mount = &initrd_mount;
     fs_initrd->unmount = &initrd_unmount;
 
+    dev_initrd->filesystem = (void*)fs_initrd;
+    
     device_register(dev_initrd);
     dev_initrd = device_get_by_uid(3);
-    bool mounted = vfs_mount("/dev/initrd", dev_initrd); 
+    bool mounted = vfs_mount("/dev/initrd/", dev_initrd); 
     
     printf("Attempted mount of '/dev/initrd': %s\n", (mounted ? "success" : "failed"));
 }

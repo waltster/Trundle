@@ -3,10 +3,11 @@
 
 #include <stdint.h>
 
-#define MYFS_MAGIC 0xB33FD00D
+#define MYFS_MAGIC (uint32_t)0xB33FD00D
 
 typedef struct {
     uint32_t magic;
+    uint32_t total_length;
     char date_made[12];
     char time_made[10];
 } myfs_header_t;

@@ -31,18 +31,23 @@ void kernel_main(multiboot_header_t *mboot_ptr) {
 
     // Free memory begins after `mboot_ptr->mods_count` pointers.
     placement_address = (
-        *((uint32_t*)mboot_ptr->mods_addr) +
-        (sizeof(uint32_t) * mboot_ptr->mods_count)
+        *(uint32_t*)(mboot_ptr->mods_addr + 4)
     );
 
     pmm_initialize();
    
     printf("Initializing devices...\n");
     device_init();
-    void *initrd_address = (void*)(((uint32_t*)mboot_ptr->mods_addr));
+    void *initrd_address = *((uint32_t*)mboot_ptr->mods_addr);
+
     initrd_init(initrd_address);
     printf("\tRAMDisk initialized\n");
     device_printall();
+
+    file_t *fp = vfs_open("/dev/initrd/courtney.txt");
+    char *buf = (char*)kmalloc(100);
+    memset(buf, 0, 100);
+    int i = vfs_read(fp, buf, 12);
 
     asm volatile("sti");
 

@@ -1,94 +1,83 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <time.h>
 #include <sys/stat.h>
-
 #include "../kernel/include/drivers/myfs.h"
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
     if (argc < 3) {
-        printf("usage: %s <output file> <input file 1> [...]\n", argv[0]);
+        printf("usage: %s <outfile> <infile> [...]\n", argv[0]);
         exit(1);
     }
 
-    char *output_file = argv[1];
-    int fd_outfile;
-    myfs_header_t header;
-    myfs_file_header_t tmp_header;
+    uint8_t *buffer = (uint8_t*)malloc(sizeof(myfs_header_t));
     time_t t = time(NULL);
     struct tm tm = *localtime(&t);
-
-    header.magic = MYFS_MAGIC;
-    snprintf((char*)&header.date_made, 11, "%d-%02d-%02d", tm.tm_year + 1900, 
-            tm.tm_mon + 1, tm.tm_mday);
-    snprintf((char*)&header.time_made, 9, "%02d:%02d:%02d", tm.tm_hour, tm.tm_min, 
-            tm.tm_sec);
     
-    if ((fd_outfile = open(output_file, O_RDWR | O_CREAT, 0660)) < 0) {
-        perror("Failed to open output file for writing.");
-        exit(1);
-    }
+    myfs_header_t *header = (myfs_header_t*)buffer;
 
-    write(fd_outfile, &header, sizeof(myfs_header_t));
+    header->magic = MYFS_MAGIC;
+    snprintf((char*)&header->date_made, 11, "%d-%02d-%02d", tm.tm_year + 1900,
+            tm.tm_mon + 1, tm.tm_mday);
+    snprintf((char*)&header->time_made, 9, "%02d:%02d:%02d", tm.tm_hour, tm.tm_min,
+            tm.tm_sec);
+
+    int pos = sizeof(myfs_header_t);
+    int num_files = 0;
 
     for (int i = 2; i < argc; i++) {
         int fd;
         struct stat file_stat;
-
-        memset((void*)&tmp_header, 0, sizeof(myfs_file_header_t));
-
+    
         if (!(fd = open(argv[i], O_RDONLY))) {
-            printf("Warning: Failed to open file. Skipping.\n");
-            perror("Failed to open file");
+            perror("Failed to open file. Skipping.");
             continue;
         }
 
         if (fstat(fd, &file_stat) < 0) {
-            printf("Warning: Failed to stat file. Skipping.\n");
-            perror("Failed to stat file");
+            perror("Failed to stat file. Skipping");
             close(fd);
             continue;
         }
 
-        char *buf = (char*)malloc(file_stat.st_size);
-        memset(buf, 0, file_stat.st_size);
+        buffer = realloc(buffer, pos + sizeof(myfs_file_header_t) + 
+                (int)file_stat.st_size);
 
-        printf("Beginning file: %s\n", argv[i]);
-        printf("\tFile Size: %d\n", file_stat.st_size);
+        myfs_file_header_t *f_header = (myfs_file_header_t*)(buffer + pos);
+        strncpy(f_header->file_name, argv[i], 255);
+        f_header->file_name[255] = 0;
+        f_header->file_size = file_stat.st_size;
 
-        if (read(fd, buf, file_stat.st_size) < file_stat.st_size) {
-            printf("Error reading file. Skipping.");
-            perror("Unable to read entire file");
-            free(buf);
+        pos += sizeof(myfs_file_header_t);
+
+        if (read(fd, buffer + pos, file_stat.st_size) < file_stat.st_size) {
+            perror("Failed reading file.");
+            buffer = realloc(buffer, pos); 
             close(fd);
             continue;
         }
 
-        tmp_header.magic = MYFS_MAGIC;
-        strncpy(tmp_header.file_name, argv[i], 255);
-        tmp_header.file_name[255] = 0;
-        tmp_header.file_size = file_stat.st_size;
-
-        if (write(fd_outfile, (void*)&tmp_header, sizeof(myfs_file_header_t))
-                < sizeof(myfs_file_header_t)) {
-            perror("Failed to write to file. Exiting");
-            exit(1);
-        }
-
-        if (write(fd_outfile, (void*)buf, tmp_header.file_size) < 
-                tmp_header.file_size) {
-            perror("Failed to write to file. Exiting");
-            exit(1);
-        }
-
-        free(buf);
+        num_files++;
+        pos += file_stat.st_size;
         close(fd);
 
-        printf("Successfully wrote file: %s\n", argv[i]);
+        printf("Successfully wrote file %s\n", argv[i]);
     }
 
-    close(fd_outfile);
+    header = (myfs_header_t*)buffer;
+    header->total_length = pos;
+    
+    int outfile_fd = open(argv[1], O_RDWR | O_CREAT, 0660);
+
+    if (write(outfile_fd, buffer, pos) < pos) {
+        perror("Failed to write all the bytes");
+        close(outfile_fd);
+    }
+
+    free(buffer);
 }
+

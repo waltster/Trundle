@@ -1,5 +1,7 @@
 #include <stdint.h>
 #include <stdbool.h>
+#include <string.h>
+#include <drivers/initrd.h>
 #include <kernel/vfs.h>
 #include <kernel/vmm.h>
 
@@ -41,17 +43,44 @@ device_t *vfs_get_mount(char *location) {
 }
 
 file_t *vfs_open(char *location) {
-    if (location == NULL) return NULL; 
-    
+    if (location == NULL) {
+        printf("Location is null!\n");    
+        return NULL; 
+    }
+
     int beginning_of_file = 0;
     int mt_index = vfs_get_mount_point_index(location, &beginning_of_file);
 
-    if (mt_index < 0) return NULL;
+    if (mt_index < 0) {
+        printf("Location not mounted!\n");     
+        return NULL;
+    }
 
     mount_point_t *mountpoint = mount_points[mt_index];
-   
-    return ((fs_t*)mountpoint->device->filesystem)->open(location, 
-            mountpoint->device);
+
+    return ((fs_t*)mountpoint->device->filesystem)->open(
+            location, mountpoint->device);
+}
+
+int vfs_read(file_t *fp, char *buffer, int length) {
+    if (!fp || !buffer) {
+        printf("File buffer or file missing!\n");
+        return -1;
+    }
+
+    if (length <= 0) return 0;
+
+    mount_point_t *mountpoint = mount_points[fp->mount_index];
+
+    if (!mountpoint) {
+        printf("Warning: attempted to read from unmounted device\n");
+        return -1;
+    }
+
+    device_t *dev = (device_t*)mountpoint->device;
+    fs_t *filesystem = (fs_t*)dev->filesystem;
+
+    return filesystem->read(fp, buffer, length, dev);
 }
 
 /*
@@ -60,7 +89,7 @@ file_t *vfs_open(char *location) {
  *
  * @return the index in mountpoints
  */
-inline int vfs_get_mount_point_index(char *location, int *str_index) {
+int vfs_get_mount_point_index(char *location, int *str_index) {
     char *filename = (char*)kmalloc(strlen(location) + 1);
     memset(filename, 0, strlen(location) + 1);
     memcpy(filename, location, strlen(location) + 1);
@@ -71,7 +100,6 @@ inline int vfs_get_mount_point_index(char *location, int *str_index) {
         for (int i = 0; i < num_mount_points; i++) {
             if (strcmp(mount_points[i]->location, filename) == 0) {
                *str_index = strlen(filename) - 1;
-               printf("%d\n", *str_index);
                kfree(filename);
                return i; 
             }

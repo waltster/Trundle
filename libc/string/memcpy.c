@@ -8,3 +8,4 @@ void *memcpy(void* restrict dst, const void* restrict src, size_t size) {
         *dst_ptr++ = *src_ptr++;
     }
 }
+

@@ -7,3 +7,5 @@ bootable.iso
 **/.swp
 **/*.mod
 utilities/ramdisk
+sysroot/boot
+sysroot/usr/local/boot

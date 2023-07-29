@@ -24,11 +24,23 @@ typedef struct device {
 } device_t;
 
 typedef struct {
+    uint8_t is_dir;
+    uint16_t flags;
+    int mount_index;  // For quick caching
+    int read_pos;     // For reading
+    int file_pos;     // For readdir if directory
+    uint32_t data;
+    uint32_t file_size;
+} file_t;
+
+typedef struct {
     char name[MAX_LEN_FILESYSTEM_NAME];
     uint32_t (*probe)(device_t*);
-    uint32_t (*read)(char *, char*, uint32_t, device_t *);
-    uint32_t (*read_dir)(char *, char *, device_t *);
-    uint32_t (*write)(char *, char *, uint32_t, device_t *);
+    file_t* (*open)(char *location, device_t *);
+    uint32_t (*read)(file_t*, char*, uint32_t, device_t *);
+    file_t* (*read_dir)(file_t *dir, device_t *);
+    file_t* (*open_dir)(char *, device_t *);
+    uint32_t (*write)(file_t *, char *, uint32_t, device_t *);
     uint32_t (*exists)(char *, device_t *);
     uint32_t (*mount)(char *, device_t *);
     uint32_t (*unmount)(device_t *);

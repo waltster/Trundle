@@ -45,12 +45,6 @@ uint32_t initrd_read(uint8_t *buffer, uint32_t offset, uint32_t length,
         return 0;
     }
 
-    if (offset + length >= info->length) {
-        printf("Warning: attempted to read more bytes than exist on initrd, "
-               "adjusting length.\n");
-        length = info->length - offset;
-    }
-
     memcpy(buffer, buf_read + offset, length); 
     return length;
 }
@@ -63,7 +57,11 @@ uint32_t initrd_write(uint8_t *buffer, uint32_t offset, uint32_t length,
 
 uint32_t initrd_read_file(file_t *file, char *buffer, uint32_t len, 
         device_t *dev) {
-    return -1;
+    if (len <= 0) return 0;
+    
+    uint32_t pos = file->data;
+
+    return initrd_read(buffer, pos, file->file_size, dev);
 }
 
 uint32_t initrd_read_dir(file_t *dir, device_t *dev) {
@@ -71,14 +69,52 @@ uint32_t initrd_read_dir(file_t *dir, device_t *dev) {
 }
 
 file_t *initrd_open_dir(char *name) {
-    file_t *dir = (file_t*)kmalloc(sizeof(file_t));
-    memset(dir, 0, sizeof(file_t));
-
-    dir->is_dir = 1;
+    return NULL;
 }
 
-file_t *initrd_open(char *name) {
-    printf("Request to open %s\n", name);
+file_t *initrd_open(char *name, device_t *dev) {
+    if (!name || !dev) {
+        printf("Name or device unset!\n");
+        return NULL;
+    }
+
+    initrd_info_t *info = (initrd_info_t*)dev->data;
+    myfs_header_t *header = (myfs_header_t*)info->mem_loc;
+
+    if (header->magic != MYFS_MAGIC) {
+        printf("Magic value does not match!\n");
+        return NULL;
+    }
+
+    uint8_t *raw = (uint8_t*)info->mem_loc;
+
+    raw += sizeof(myfs_header_t);
+
+    int adjuster;
+    int mount_index = vfs_get_mount_point_index(name, &adjuster);
+
+    while (raw < (((uint8_t*)info->mem_loc) + info->length)) {
+        myfs_file_header_t *file_header = (myfs_file_header_t*)raw;
+
+        if (strcmp(file_header->file_name, name + 1 + adjuster) == 0) {
+            file_t *fp = (file_t*)kmalloc(sizeof(file_t));
+            assert(fp != NULL);
+            memset(fp, 0, sizeof(file_t));
+
+            fp->is_dir = 0;
+            fp->flags = 0;
+            fp->mount_index = mount_index;
+            fp->read_pos = 0;
+            fp->file_pos = 0;
+            fp->data = (uint32_t)file_header + sizeof(myfs_file_header_t) 
+                - (uint32_t)info->mem_loc;
+            fp->file_size = file_header->file_size;
+            return fp;
+        }
+
+        raw += sizeof(myfs_file_header_t) + file_header->file_size;
+    }
+
     return NULL;
 }
 
@@ -104,6 +140,15 @@ void initrd_init(void *mem_loc) {
     assert(dev_initrd != NULL);
     memset(dev_initrd, 0, sizeof(device_t));
 
+    initrd_info_t *initrd_info = (initrd_info_t*)kmalloc(sizeof(initrd_info_t));
+    assert(initrd_info != NULL);
+    memset(initrd_info, 0, sizeof(initrd_info_t));
+
+    myfs_header_t *myfs_header = (myfs_header_t*)mem_loc;
+
+    initrd_info->mem_loc = mem_loc;
+    initrd_info->length = myfs_header->total_length;
+
     fs_t *fs_initrd = (fs_t*)kmalloc(sizeof(fs_t));
     assert(fs_initrd != NULL);
     memset(fs_initrd, 0, sizeof(fs_t));
@@ -114,7 +159,7 @@ void initrd_init(void *mem_loc) {
     dev_initrd->filesystem = (void*)fs_initrd;
     dev_initrd->read = &initrd_read;
     dev_initrd->write = &initrd_write;
-    dev_initrd->data = mem_loc;
+    dev_initrd->data = initrd_info;
 
     memcpy(fs_initrd->name, "initrd", strlen("initrd"));
     fs_initrd->probe = &initrd_probe;

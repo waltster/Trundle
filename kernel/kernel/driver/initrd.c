@@ -155,7 +155,7 @@ void initrd_init(void *mem_loc) {
     assert(fs_initrd != NULL);
     memset(fs_initrd, 0, sizeof(fs_t));
 
-    memcpy(dev_initrd->name, "initrd", strlen("initrd"));
+    strncpy(dev_initrd->name, "initrd", sizeof(dev_initrd->name));
     dev_initrd->uid = 3;
     dev_initrd->type = CHAR;
     dev_initrd->filesystem = (void*)fs_initrd;
@@ -163,7 +163,7 @@ void initrd_init(void *mem_loc) {
     dev_initrd->write = &initrd_write;
     dev_initrd->data = initrd_info;
 
-    memcpy(fs_initrd->name, "initrd", strlen("initrd"));
+    strncpy(fs_initrd->name, "initrd", sizeof(fs_initrd->name));
     fs_initrd->probe = &initrd_probe;
     fs_initrd->read = &initrd_read_file;
     fs_initrd->read_dir = &initrd_read_dir;

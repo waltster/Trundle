@@ -1,0 +1,25 @@
+IN-PROGRESS
+==========
+- VFS Operations
+
+TODO
+====
+- VFS Operations (Complete)
+    - `vfs_readdir`
+    - `vfs_rm`
+    - `vfs_rmdir`
+    - `vfs_link`
+    - `vfs_unlink`
+    - `vfs_pipe`
+    - `vfs_unpipe`
+    - Actual file permissions?
+    - `vfs_chmod`
+    - `vfs_lock`
+    - `vfs_unlock`
+- Filesystems
+    - Nothing stream `/dev/null`
+    - Stream of zeroes `/dev/zero`
+    - Procfs? `/proc`?
+    - FAT? EXT2? What is first?
+- Keyboard driver
+- stdin/stdout - file-based

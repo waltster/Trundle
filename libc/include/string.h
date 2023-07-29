@@ -17,6 +17,7 @@ size_t strlen(const char*);
 size_t strnlen(const char* str, size_t maxlen);
 int strcmp(const char*, const char*);
 int strncmp(const char*, const char*, size_t);
+char *strncpy(char *, const char*, size_t);
 
 #ifdef __cplusplus
 }

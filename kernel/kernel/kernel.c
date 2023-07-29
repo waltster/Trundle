@@ -44,11 +44,11 @@ void kernel_main(multiboot_header_t *mboot_ptr) {
     printf("\tRAMDisk initialized\n");
     device_printall();
 
-    file_t *fp = vfs_open("/dev/initrd/courtney.txt");
-    char *buf = (char*)kmalloc(100);
-    vfs_read(fd, buf, 12);
+    file_t *fp = vfs_open("/dev/initrd");
+//    char *buf = (char*)kmalloc(100);
+//    vfs_read(fd, buf, 12);
 
-    memset(buf, 0, 100);
+//    memset(buf, 0, 100);
 
     asm volatile("sti");
 

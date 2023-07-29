@@ -9,7 +9,7 @@ static mount_point_t **mount_points;
 static int num_mount_points = 0;
 
 inline bool remove_until(char *str, char c) {
-    int i = strlen(str);
+    int i = strlen(str) - 1;
 
     while (i) {
         i--;
@@ -63,11 +63,7 @@ file_t *vfs_open(char *location) {
 }
 
 int vfs_read(file_t *fp, char *buffer, int length) {
-    if (!fp || !buffer) {
-        printf("File buffer or file missing!\n");
-        return -1;
-    }
-
+    if (!fp || !buffer) return -1;
     if (length <= 0) return 0;
 
     mount_point_t *mountpoint = mount_points[fp->mount_index];
@@ -83,6 +79,27 @@ int vfs_read(file_t *fp, char *buffer, int length) {
     return filesystem->read(fp, buffer, length, dev);
 }
 
+int vfs_write(file_t *fp, char *buffer, int length) {
+    if (!fp || !buffer) return -1;
+
+    mount_point_t *mountpoint = mount_points[fp->mount_index];
+
+    if (!mountpoint) return -1;
+
+    device_t *dev = (device_t*)mountpoint->device;
+    fs_t *filesystem = (fs_t*)dev->filesystem;
+
+    return filesystem->write(fp, buffer, length, dev);
+}
+
+int vfs_close(file_t *fp) {
+    if (!fp) return -1;
+
+    kfree(fp);
+
+    return 0;
+}
+
 /*
  * Find what part of a given path is the mount point and what index of the
  * string is that mountpoint found at.
@@ -93,7 +110,7 @@ int vfs_get_mount_point_index(char *location, int *str_index) {
     char *filename = (char*)kmalloc(strlen(location) + 1);
     memset(filename, 0, strlen(location) + 1);
     memcpy(filename, location, strlen(location) + 1);
-    
+   
     if (filename[strlen(filename)] == '/') remove_until(filename, '/');
 
     while (true) {

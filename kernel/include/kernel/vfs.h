@@ -53,7 +53,11 @@ typedef struct {
 
 bool vfs_is_mounted(char *mount);
 device_t *vfs_get_mount(char *location);
+file_t *vfs_open(char *location);
+int vfs_read(file_t *fp, char *buffer, int length);
+int vfs_close(file_t *fp);
 bool vfs_mount(char *mount, device_t *dev);
+int vfs_get_mount_point_index(char *location, int *str_index);
 
 int device_register(device_t *d);
 device_t *device_get_by_uid(int uid);

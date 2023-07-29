@@ -73,6 +73,8 @@ file_t *initrd_open_dir(char *name) {
 }
 
 file_t *initrd_open(char *name, device_t *dev) {
+    printf("Name: %s\n", name);
+
     if (!name || !dev) {
         printf("Name or device unset!\n");
         return NULL;
@@ -176,7 +178,7 @@ void initrd_init(void *mem_loc) {
     
     device_register(dev_initrd);
     dev_initrd = device_get_by_uid(3);
-    bool mounted = vfs_mount("/dev/initrd/", dev_initrd); 
+    bool mounted = vfs_mount("/dev/initrd", dev_initrd); 
     
     printf("Attempted mount of '/dev/initrd': %s\n", (mounted ? "success" : "failed"));
 }

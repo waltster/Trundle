@@ -1,0 +1,4 @@
+default 0
+title myos
+kernel /usr/local/boot/myos.kernel
+module /usr/local/boot/m1.mod

@@ -46,8 +46,9 @@ void kernel_main(multiboot_header_t *mboot_ptr) {
 
     file_t *fp = vfs_open("/dev/initrd/courtney.txt");
     char *buf = (char*)kmalloc(100);
+    vfs_read(fd, buf, 12);
+
     memset(buf, 0, 100);
-    int i = vfs_read(fp, buf, 12);
 
     asm volatile("sti");
 

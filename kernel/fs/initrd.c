@@ -16,9 +16,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <kernel/vmm.h>
-#include <kernel/vfs.h>
+#include <fs/vfs.h>
+#include <fs/myfs.h>
 #include <drivers/initrd.h>
-#include <drivers/myfs.h>
 
 uint32_t initrd_probe(device_t *dev) {
     myfs_header_t myfs_header;
@@ -41,7 +41,7 @@ uint32_t initrd_read(uint8_t *buffer, uint32_t offset, uint32_t length,
 
     if ((int)offset < 0 || (int)(offset + length) < 0) {
         printf("Warning: attempted to read at offset smaller than 0 on initrd"
-               "\n");
+               ": %d\n", offset);
         return 0;
     }
 
@@ -122,19 +122,19 @@ file_t *initrd_open(char *name, device_t *dev) {
 
 uint32_t initrd_write_file(file_t *file, char *buffer, uint32_t len,
         device_t *dev) {
-    return -1;
+    return 0;
 }
 
 uint32_t initrd_exists(char *name, device_t *dev) {
-    return -1;
+    return 0;
 }
 
 uint32_t initrd_mount(char *loc, device_t *dev) {
-    return -1;
+    return 1;
 }
 
 uint32_t initrd_unmount(device_t *dev) {
-    return -1;
+    return 0;
 }
 
 void initrd_init(void *mem_loc) {

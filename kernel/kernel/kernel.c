@@ -3,7 +3,7 @@
 #include <kernel/tty.h>
 #include <kernel/vmm.h>
 #include <kernel/multiboot.h>
-#include <kernel/vfs.h>
+#include <fs/vfs.h>
 #include <arch/i386/descriptor_tables.h>
 #include <arch/i386/pmm.h>
 #include <string.h>

@@ -2,7 +2,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <drivers/initrd.h>
-#include <kernel/vfs.h>
+#include <fs/vfs.h>
 #include <kernel/vmm.h>
 
 static mount_point_t **mount_points;
@@ -135,7 +135,9 @@ bool vfs_mount(char *mount, device_t *dev) {
     if (!dev || !(dev->uid)) return false;
     if (vfs_is_mounted(mount)) return false;
 
-    if (initrd_probe(dev)) {
+    if (ext2_probe(dev)) {
+        abort("Not actually EXT2");
+    } else if (initrd_probe(dev)) {
         if (initrd_mount(mount, dev)) {
             mount_point_t *new_point = (mount_point_t*)kmalloc(
                     sizeof(mount_point_t));

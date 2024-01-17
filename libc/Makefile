@@ -26,6 +26,7 @@ LIBK_C_FLAGS:=$(LIBK_C_FLAGS) $(KERNEL_ARCH_C_FLAGS)
 LIBK_CPP_FLAGS:=$(LIBK_CPP_FLAGS) $(KERNEL_ARCH_CPP_FLAGS)
 
 FREE_OBJS=$(ARCH_FREE_OBJS) \
+queue.o \
 stdio/printf.o \
 stdio/putchar.o \
 stdio/puts.o \

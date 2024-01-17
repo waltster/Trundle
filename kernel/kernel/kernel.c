@@ -7,6 +7,7 @@
 #include <arch/i386/descriptor_tables.h>
 #include <arch/i386/pmm.h>
 #include <string.h>
+#include <drivers/ps2_keyboard.h>
 
 volatile uint32_t tick = 0;
 void timer_callback(registers_t* regs) {
@@ -38,17 +39,15 @@ void kernel_main(multiboot_header_t *mboot_ptr) {
    
     printf("Initializing devices...\n");
     device_init();
+    vfs_init();
     void *initrd_address = *((uint32_t*)mboot_ptr->mods_addr);
 
     initrd_init(initrd_address);
     printf("\tRAMDisk initialized\n");
     device_printall();
 
-    file_t *fp = vfs_open("/dev/initrd");
-//    char *buf = (char*)kmalloc(100);
-//    vfs_read(fd, buf, 12);
-//    memset(buf, 0, 100);
-
+    ps2_keyboard_init();
+    
     asm volatile("sti");
 
     for(;;) {

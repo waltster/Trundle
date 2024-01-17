@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "ps2_keyboard.h": "c",
+        "queue.h": "c",
+        "descriptor_tables.h": "c"
+    }
+}

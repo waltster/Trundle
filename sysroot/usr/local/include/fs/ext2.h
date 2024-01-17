@@ -93,7 +93,7 @@ typedef struct {
     uint32_t version_major;
     uint16_t uid_for_reserved;
     uint16_t gid_for_reserved;
-} ext2_superblock_t;
+} __attribute__((packed)) ext2_superblock_t;
 
 typedef struct {
     ext2_superblock_t superblock;
@@ -115,7 +115,7 @@ typedef struct {
     uint32_t journal_device;
     uint32_t head_of_orphan_inode_list;
     uint8_t unused_1[788];
-} ext2_superblock_extended_t;
+} __attribute__((packed)) ext2_superblock_extended_t;
 
 typedef struct {
     uint32_t addr_block_usage_bitmap;
@@ -125,7 +125,7 @@ typedef struct {
     uint16_t num_unalloc_inodes_in_group;
     uint16_t num_dirs_in_group;
     uint8_t unused[14];
-} ext2_block_group_descriptor_t;
+} __attribute__((packed)) ext2_block_group_descriptor_t;
 
 typedef struct {
     uint16_t type_permissions;
@@ -149,7 +149,7 @@ typedef struct {
     uint32_t reserved;
     uint32_t addr_block_fragment;
     uint8_t  os_specific_1[12];
-} ext2_inode_t;
+} __attribute__((packed)) ext2_inode_t;
 
 typedef struct {
     uint32_t inode;
@@ -157,6 +157,6 @@ typedef struct {
     uint8_t name_length;
     uint8_t type;
     // Name is here, but variable length
-} ext2_dirent;
+} __attribute__((packed)) ext2_dirent;
 
 #endif

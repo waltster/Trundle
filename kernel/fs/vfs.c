@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include <string.h>
 #include <drivers/initrd.h>
 #include <fs/vfs.h>
@@ -22,6 +23,11 @@ inline bool remove_until(char *str, char c) {
     }
 
     return false;
+}
+
+void vfs_init() {
+    mount_points = (mount_point_t**)kmalloc(sizeof(mount_point_t*) * MAX_MOUNT_POINTS);
+    memset(mount_points, 0, sizeof(mount_point_t*) * MAX_MOUNT_POINTS);
 }
 
 bool vfs_is_mounted(char *mount) {
@@ -132,10 +138,18 @@ int vfs_get_mount_point_index(char *location, int *str_index) {
 }
 
 bool vfs_mount(char *mount, device_t *dev) {
-    if (!dev || !(dev->uid)) return false;
+    if (!dev || (dev->uid < 0)) return false;
     if (vfs_is_mounted(mount)) return false;
 
-    if (ext2_probe(dev)) {
+    if (ps2_keyboard_probe(dev)) {
+        mount_point_t *new_point = (mount_point_t*)kmalloc(sizeof(mount_point_t));
+        memset(new_point, 0, sizeof(mount_point_t));
+        
+        new_point->location = mount;
+        new_point->device = dev;
+        mount_points[num_mount_points++] = new_point;
+        return true;
+    } else if (ext2_probe(dev)) {
         abort("Not actually EXT2");
     } else if (initrd_probe(dev)) {
         if (initrd_mount(mount, dev)) {
@@ -150,7 +164,7 @@ bool vfs_mount(char *mount, device_t *dev) {
         }
 
         return false;
-    }
+    } 
 
     return false;
 }

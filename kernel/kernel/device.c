@@ -1,12 +1,14 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <string.h>
 #include <kernel/vmm.h>
 #include <kernel/vfs.h>
 
 static device_t *devices;
 static int num_devices = 0;
 
+// Register a new device with the manager, receive a UID unique to this boot
 int device_register(device_t *d) {
     if (d == NULL) return -1;
 
@@ -43,7 +45,6 @@ void device_init() {
     devices = (device_t*)kmalloc(sizeof(device_t)*INITIAL_DEVICE_COUNT);
     assert(devices != NULL);
     memset(devices, 0, sizeof(device_t)*INITIAL_DEVICE_COUNT);
-
 
     printf("Device manager initialized.\n");
 }

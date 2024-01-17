@@ -112,7 +112,7 @@ uint32_t pmm_allocate_pages(int pages) {
     if (pages <= 0) return OUT_OF_MEMORY;
 
     uint32_t index = 0;
-    uint32_t free_frames = 0;
+    int free_frames = 0;
 
     while (index < INDEX_FROM_BIT(frame_count)) {
         // Check if the frame is full
@@ -151,24 +151,6 @@ uint32_t pmm_allocate_pages(int pages) {
 
         index++;
     }
-
-/* old:
-    for (uint32_t index = 0; index < INDEX_FROM_BIT(frame_count); index++) {
-        // Bitframe is full
-        if (bit_frames[index] != 0xFFFFFFFF) {
-            for (uint32_t bit = 0; bit < 32; bit++) {
-                uint32_t to_test = 1 << bit;
-
-                if (!(bit_frames[index] & to_test)) {
-                    uint32_t addr = (index * 32) + bit;
-
-                    pmm_set_frame(addr * PAGE_SIZE);
-                    return (addr * PAGE_SIZE);
-                }
-            }
-        }
-
-    }*/
 
     return OUT_OF_MEMORY;
 }

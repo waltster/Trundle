@@ -37,10 +37,10 @@ typedef struct {
     char name[MAX_LEN_FILESYSTEM_NAME];
     uint32_t (*probe)(device_t*);
     file_t* (*open)(char *location, device_t *);
-    uint32_t (*read)(file_t*, char*, uint32_t, device_t *);
+    uint32_t (*read)(file_t*, uint8_t*, uint32_t, device_t *);
     file_t* (*read_dir)(file_t *dir, device_t *);
     file_t* (*open_dir)(char *, device_t *);
-    uint32_t (*write)(file_t *, char *, uint32_t, device_t *);
+    uint32_t (*write)(file_t *, uint8_t*, uint32_t, device_t *);
     uint32_t (*exists)(char *, device_t *);
     uint32_t (*mount)(char *, device_t *);
     uint32_t (*unmount)(device_t *);
@@ -54,11 +54,12 @@ typedef struct {
 bool vfs_is_mounted(char *mount);
 device_t *vfs_get_mount(char *location);
 file_t *vfs_open(char *location);
-int vfs_read(file_t *fp, char *buffer, int length);
+int vfs_read(file_t *fp, uint8_t *buffer, int length);
 int vfs_close(file_t *fp);
 bool vfs_mount(char *mount, device_t *dev);
 int vfs_get_mount_point_index(char *location, int *str_index);
-
+uint32_t vfs_exists_stub(char *name, device_t *dev);
+void vfs_init();
 int device_register(device_t *d);
 device_t *device_get_by_uid(int uid);
 void device_printall();

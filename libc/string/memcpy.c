@@ -7,5 +7,7 @@ void *memcpy(void* restrict dst, const void* restrict src, size_t size) {
     for(; size != 0; size--) {
         *dst_ptr++ = *src_ptr++;
     }
+
+    return dst;
 }
 

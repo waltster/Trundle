@@ -5,7 +5,7 @@
 #include <arch/i386/descriptor_tables.h>
 #include <kernel/vfs.h>
 
-static queue_t *keyboard_scancode_queue;
+static queue_t *keyboard_key_queue;
 // Bits: 0-7 in order: Alt-Control-Shift
 static bool shift = false;
 static bool alt = false;
@@ -254,17 +254,30 @@ bool ps2_keyboard_probe(device_t *dev) {
     return dev->uid == 0;
 }
 
+/*
+ * The theory here is that the keyboard will read and handle interrupts, then
+ * pass the information to the active process's stdin buffer. However, since the
+ * system does not support multiple processes, it will just append it to the
+ * kernel's stdin buffer for now.
+ */
 void ps2_keyboard_interrupt_handler(registers_t *regs) {
     ps2_wait_read();
     uint8_t scancode = inb(PS2_DATA_PORT);
-
+    
     if (scancode == PS2_KEYBOARD_LEFT_ALT_PRESSED) {
         alt = true;
-    } else if (scancode == PS2_KEYBOARD_LEFT_CONTROL_PRESSED) {
+    } 
+    
+    if (scancode == PS2_KEYBOARD_LEFT_CONTROL_PRESSED) {
         control = true;
-    } else if (scancode == PS2_KEYBOARD_LEFT_SHIFT_PRESSED || scancode == PS2_KEYBOARD_RIGHT_SHIFT_PRESSED) {
-        shift = true;
-    } else if (scancode == PS2_KEYBOARD_MULTIMEDIA) {
+    } 
+    
+    if (scancode == PS2_KEYBOARD_LEFT_SHIFT_PRESSED || 
+        scancode == PS2_KEYBOARD_RIGHT_SHIFT_PRESSED) {
+            shift = true;
+    } 
+    
+    if (scancode == PS2_KEYBOARD_MULTIMEDIA) {
         ps2_wait_read();
         scancode = inb(PS2_DATA_PORT);
 
@@ -273,17 +286,25 @@ void ps2_keyboard_interrupt_handler(registers_t *regs) {
         } else if (scancode == PS2_KEYBOARD_RIGHT_CONTROL_PRESSED) {
             control = true;
         }
-    } else if (scancode == PS2_KEYBOARD_KEY_RELEASED) {
+    } 
+    
+    if (scancode == PS2_KEYBOARD_KEY_RELEASED) {
         ps2_wait_read();
         scancode = inb(PS2_DATA_PORT);
 
         if (scancode == PS2_KEYBOARD_LEFT_ALT_RELEASED) {
             alt = false;
-        } else if (scancode == PS2_KEYBOARD_LEFT_CONTROL_RELEASED) {
+        } 
+        
+        if (scancode == PS2_KEYBOARD_LEFT_CONTROL_RELEASED) {
             control = false;
-        } else if (scancode == PS2_KEYBOARD_LEFT_SHIFT_RELEASED || scancode == PS2_KEYBOARD_RIGHT_SHIFT_RELEASED) {
+        } 
+        
+        if (scancode == PS2_KEYBOARD_LEFT_SHIFT_RELEASED || scancode == PS2_KEYBOARD_RIGHT_SHIFT_RELEASED) {
             shift = false;
-        } else if (scancode == PS2_KEYBOARD_MULTIMEDIA) {
+        } 
+        
+        if (scancode == PS2_KEYBOARD_MULTIMEDIA) {
             ps2_wait_read();
             scancode = inb(PS2_DATA_PORT);
 
@@ -311,26 +332,20 @@ void ps2_keyboard_init() {
     int keyboard_port = -1;
     int mouse_port = -1;
 
-    keyboard_scancode_queue = queue_create();
+    keyboard_key_queue = queue_create();
 
     printf("Beginning PS/2 Setup...\n");
-    printf("Disabling devices\n");
     ps2_disable(3);
-    printf("Flushing output buffer\n");
     ps2_flush_output_buffer();
-    printf("Disabling interrupts\n");
     ps2_disable_interrupts();
-    printf("Conducting self test\n");
     if (!ps2_self_test()) {panic("PS/2 self test failed.");}
     
-    printf("Checking ports\n");
     if (ps2_check_port(1)) has_port_1 = true;
     if (ps2_check_port(2)) has_port_2 = true;
     
-    printf("Enabling\n");
     ps2_enable();
     ps2_reset();
-    printf("Identifying\n");
+    
     if (has_port_1) {
         if (ps2_identify(1) == PS2_KEYBOARD) {
             printf("PS/2 setup complete\n");
@@ -343,6 +358,7 @@ void ps2_keyboard_init() {
     //=====
     // Begin OS-level device initialization
     //=====
+    file_t *stdin = vfs_open("/dev/stdio/0");
     /*
     device_t *dev_keyboard = (device_t*)kmalloc(sizeof(device_t));
     fs_t *fs_keyboard = (fs_t*)kmalloc(sizeof(fs_t));

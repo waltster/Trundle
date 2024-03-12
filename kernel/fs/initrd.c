@@ -61,7 +61,7 @@ uint32_t initrd_read_file(file_t *file, uint8_t *buffer, uint32_t len,
     
     uint32_t pos = file->read_pos;
 
-    return initrd_read(buffer, pos, file->file_size, dev);
+    return initrd_read(buffer, pos, (len > file->file_size) ? file->file_size : len, dev);
 }
 
 uint32_t initrd_read_dir(file_t *dir, device_t *dev) {

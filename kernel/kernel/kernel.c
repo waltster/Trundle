@@ -19,11 +19,11 @@ extern uint32_t placement_address;
 
 void kernel_main(multiboot_header_t *mboot_ptr) {
     terminal_initialize();
-    printf("Hello, world!\n");
+    puts("Hello, world!");
     gdt_initialize();
-    printf("Initialized GDT\n");
+    puts("Initialized GDT");
     idt_initialize();
-    printf("Initialized ISR\n");
+    puts("Initialized ISR");
 
     // At least m1.mod needs to load, this is the initial ramdisk.
     if (mboot_ptr->mods_count <= 0) {
@@ -37,9 +37,11 @@ void kernel_main(multiboot_header_t *mboot_ptr) {
 
     pmm_initialize();
    
-    printf("Initializing devices...\n");
+    puts("Initializing devices...");
     device_init();
     vfs_init();
+    tty_init();
+
     void *initrd_address = *((uint32_t*)mboot_ptr->mods_addr);
 
     initrd_init(initrd_address);
@@ -48,6 +50,9 @@ void kernel_main(multiboot_header_t *mboot_ptr) {
 
     ps2_keyboard_init();
     
+    printf("Testing invalid file open...\n");
+    vfs_open("/ass/butt");
+
     asm volatile("sti");
 
     for(;;) {
